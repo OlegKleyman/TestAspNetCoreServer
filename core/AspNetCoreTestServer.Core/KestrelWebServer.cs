@@ -8,7 +8,7 @@ using Optional;
 
 namespace AspNetCoreTestServer.Core
 {
-    public class KestrelWebServer
+    public class KestrelWebServer : IWebServer
     {
         private readonly IPortResolver _portResolver;
         private readonly Func<IWebHostBuilder> _webHostBuilderFactory;
