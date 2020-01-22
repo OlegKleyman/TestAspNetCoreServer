@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Linq;
 using System.Reflection;
 using System.Threading.Tasks;
 using FluentAssertions;
@@ -19,6 +18,17 @@ namespace AspNetCoreTestServer.Core.Tests.Units
 {
     public class KestrelWebServerTests
     {
+        [NotNull]
+        private KestrelWebServer CreateKestrelWebServer(Func<IWebHostBuilder> webHostBuilderFactory,
+            IPortResolver portResolver) => new KestrelWebServer(webHostBuilderFactory, portResolver);
+
+        public class Startup
+        {
+            public void Configure([NotNull] IApplicationBuilder app)
+            {
+            }
+        }
+
         [Fact]
         public async Task StartAsyncReturnsRunningStateWithTheEndpointItWasStartedOn()
         {
@@ -36,20 +46,6 @@ namespace AspNetCoreTestServer.Core.Tests.Units
         }
 
         [Fact]
-        public async Task StartAsyncStartsServerWithApplicationKeySetToAssemblyName()
-        {
-            var hostBuilder = Substitute.For<IWebHostBuilder>();
-
-            hostBuilder.ReturnsForAll(hostBuilder);
-            hostBuilder.Build().Returns(Substitute.For<IWebHost>());
-
-            var server = CreateKestrelWebServer(() => hostBuilder, Substitute.For<IPortResolver>());
-            var assembly = Assembly.GetExecutingAssembly();
-            await server.StartAsync<object>(assembly, default, new Dictionary<string, string>());
-            hostBuilder.Received().UseSetting(WebHostDefaults.ApplicationKey, assembly.FullName);
-        }
-
-        [Fact]
         public async Task StartAsyncSimpleStartsServerWithApplicationKeySetToAssemblyName()
         {
             var hostBuilder = Substitute.For<IWebHostBuilder>();
@@ -64,49 +60,6 @@ namespace AspNetCoreTestServer.Core.Tests.Units
         }
 
         [Fact]
-        public async Task StartAsyncStartsServerWithKestrelSupport()
-        {
-            var hostBuilder = Substitute.For<IWebHostBuilder>();
-
-            hostBuilder.ReturnsForAll(hostBuilder);
-            hostBuilder.Build().Returns(Substitute.For<IWebHost>());
-
-            var server = CreateKestrelWebServer(() => hostBuilder, Substitute.For<IPortResolver>());
-            await server.StartAsync<object>(Assembly.GetExecutingAssembly(), default, new Dictionary<string, string>());
-            hostBuilder.Received().UseKestrel();
-        }
-
-        [Fact]
-        public async Task StartAsyncStartsServerWithLocalUrlOnRandomPort()
-        {
-            var hostBuilder = Substitute.For<IWebHostBuilder>();
-
-            hostBuilder.ReturnsForAll(hostBuilder);
-            hostBuilder.Build().Returns(Substitute.For<IWebHost>());
-
-            var portResolver = Substitute.For<IPortResolver>();
-            portResolver.GetAvailableTcpPort().Returns(80);
-
-            var server = CreateKestrelWebServer(() => hostBuilder, portResolver);
-            await server.StartAsync<object>(Assembly.GetExecutingAssembly(), default, new Dictionary<string, string>());
-            hostBuilder.Received().UseSetting(WebHostDefaults.ServerUrlsKey, "http://127.0.0.1:80");
-        }
-
-        [Fact]
-        public async Task StartAsyncStartsServerWithContentRootWhenSome()
-        {
-            var hostBuilder = Substitute.For<IWebHostBuilder>();
-
-            hostBuilder.ReturnsForAll(hostBuilder);
-            hostBuilder.Build().Returns(Substitute.For<IWebHost>());
-
-            var server = CreateKestrelWebServer(() => hostBuilder, Substitute.For<IPortResolver>());
-            const string contentRoot = "test";
-            await server.StartAsync<object>(Assembly.GetExecutingAssembly(), contentRoot.Some(), new Dictionary<string, string>());
-            hostBuilder.Received().UseSetting(WebHostDefaults.ContentRootKey, contentRoot);
-        }
-
-        [Fact]
         public async Task StartAsyncStartsServerDoesNotSetContentRootWhenNone()
         {
             var hostBuilder = Substitute.For<IWebHostBuilder>();
@@ -115,29 +68,24 @@ namespace AspNetCoreTestServer.Core.Tests.Units
             hostBuilder.Build().Returns(Substitute.For<IWebHost>());
 
             var server = CreateKestrelWebServer(() => hostBuilder, Substitute.For<IPortResolver>());
-            await server.StartAsync<object>(Assembly.GetExecutingAssembly(), Option.None<string>(), new Dictionary<string, string>());
-            hostBuilder.DidNotReceive().UseSetting(Arg.Is<string>(s => s == WebHostDefaults.ContentRootKey), Arg.Any<string>());
+            await server.StartAsync<object>(Assembly.GetExecutingAssembly(), Option.None<string>(),
+                new Dictionary<string, string>());
+            hostBuilder.DidNotReceive()
+                       .UseSetting(Arg.Is<string>(s => s == WebHostDefaults.ContentRootKey), Arg.Any<string>());
         }
 
         [Fact]
-        public async Task StartAsyncStartsServerWithTheSpecifiedStartupClass()
+        public async Task StartAsyncStartsServerWithApplicationKeySetToAssemblyName()
         {
             var hostBuilder = Substitute.For<IWebHostBuilder>();
 
             hostBuilder.ReturnsForAll(hostBuilder);
             hostBuilder.Build().Returns(Substitute.For<IWebHost>());
 
-            var collection = new ServiceCollection();
-            collection.AddSingleton(Substitute.For<IHostingEnvironment>());
-            hostBuilder.WhenForAnyArgs(builder => builder.ConfigureServices(default(Action<IServiceCollection>))).Do(
-                info =>
-                {
-                    var action = info.Arg<Action<IServiceCollection>>();
-                    action(collection);
-                });
             var server = CreateKestrelWebServer(() => hostBuilder, Substitute.For<IPortResolver>());
-            await server.StartAsync<Startup>(Assembly.GetExecutingAssembly(), default, new Dictionary<string, string>());
-            collection.BuildServiceProvider().GetService<IStartup>().Should().NotBeNull();
+            var assembly = Assembly.GetExecutingAssembly();
+            await server.StartAsync<object>(assembly, default, new Dictionary<string, string>());
+            hostBuilder.Received().UseSetting(WebHostDefaults.ApplicationKey, assembly.FullName);
         }
 
         [Fact]
@@ -174,15 +122,71 @@ namespace AspNetCoreTestServer.Core.Tests.Units
                        .ConfigureAppConfiguration(Arg.Any<Action<WebHostBuilderContext, IConfigurationBuilder>>());
         }
 
-        [NotNull]
-        private KestrelWebServer CreateKestrelWebServer(Func<IWebHostBuilder> webHostBuilderFactory, IPortResolver portResolver) =>
-            new KestrelWebServer(webHostBuilderFactory, portResolver);
-
-        public class Startup
+        [Fact]
+        public async Task StartAsyncStartsServerWithContentRootWhenSome()
         {
-            public void Configure([NotNull] IApplicationBuilder app)
-            {
-            }
+            var hostBuilder = Substitute.For<IWebHostBuilder>();
+
+            hostBuilder.ReturnsForAll(hostBuilder);
+            hostBuilder.Build().Returns(Substitute.For<IWebHost>());
+
+            var server = CreateKestrelWebServer(() => hostBuilder, Substitute.For<IPortResolver>());
+            const string contentRoot = "test";
+            await server.StartAsync<object>(Assembly.GetExecutingAssembly(), contentRoot.Some(),
+                new Dictionary<string, string>());
+            hostBuilder.Received().UseSetting(WebHostDefaults.ContentRootKey, contentRoot);
+        }
+
+        [Fact]
+        public async Task StartAsyncStartsServerWithKestrelSupport()
+        {
+            var hostBuilder = Substitute.For<IWebHostBuilder>();
+
+            hostBuilder.ReturnsForAll(hostBuilder);
+            hostBuilder.Build().Returns(Substitute.For<IWebHost>());
+
+            var server = CreateKestrelWebServer(() => hostBuilder, Substitute.For<IPortResolver>());
+            await server.StartAsync<object>(Assembly.GetExecutingAssembly(), default, new Dictionary<string, string>());
+            hostBuilder.Received().UseKestrel();
+        }
+
+        [Fact]
+        public async Task StartAsyncStartsServerWithLocalUrlOnRandomPort()
+        {
+            var hostBuilder = Substitute.For<IWebHostBuilder>();
+
+            hostBuilder.ReturnsForAll(hostBuilder);
+            hostBuilder.Build().Returns(Substitute.For<IWebHost>());
+
+            var portResolver = Substitute.For<IPortResolver>();
+            portResolver.GetAvailableTcpPort().Returns(80);
+
+            var server = CreateKestrelWebServer(() => hostBuilder, portResolver);
+            await server.StartAsync<object>(Assembly.GetExecutingAssembly(), default, new Dictionary<string, string>());
+            hostBuilder.Received().UseSetting(WebHostDefaults.ServerUrlsKey, "http://127.0.0.1:80");
+        }
+
+        [Fact]
+        public async Task StartAsyncStartsServerWithTheSpecifiedStartupClass()
+        {
+            var hostBuilder = Substitute.For<IWebHostBuilder>();
+
+            hostBuilder.ReturnsForAll(hostBuilder);
+            hostBuilder.Build().Returns(Substitute.For<IWebHost>());
+
+            var collection = new ServiceCollection();
+            collection.AddSingleton(Substitute.For<IHostingEnvironment>());
+            hostBuilder.WhenForAnyArgs(builder => builder.ConfigureServices(default(Action<IServiceCollection>)))
+                       .Do(
+                           info =>
+                           {
+                               var action = info.Arg<Action<IServiceCollection>>();
+                               action(collection);
+                           });
+            var server = CreateKestrelWebServer(() => hostBuilder, Substitute.For<IPortResolver>());
+            await server.StartAsync<Startup>(Assembly.GetExecutingAssembly(), default,
+                new Dictionary<string, string>());
+            collection.BuildServiceProvider().GetService<IStartup>().Should().NotBeNull();
         }
     }
 }

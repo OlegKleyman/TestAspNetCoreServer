@@ -1,6 +1,4 @@
 ﻿using System.Collections.Generic;
-using System.IO;
-using System.Net;
 using System.Net.Http;
 using System.Reflection;
 using System.Threading.Tasks;
@@ -8,7 +6,6 @@ using AspNetCoreTestServer.Core;
 using AspNetCoreTestServer.Tests.Integration.Support;
 using AspNetCoreTestServer.Tests.Integration.Web;
 using FluentAssertions;
-using FluentAssertions.Optional.Extensions;
 using Microsoft.AspNetCore;
 using Optional;
 using Refit;
@@ -18,6 +15,9 @@ namespace AspNetCoreTestServer.Tests.Integration
 {
     public class KestrelWebServerTests
     {
+        private KestrelWebServer CreateKestrelWebServer() =>
+            new KestrelWebServer(WebHost.CreateDefaultBuilder, new PortResolver());
+
         [Fact]
         public async Task StartAsyncStartsTheWebApplication()
         {
@@ -33,7 +33,8 @@ namespace AspNetCoreTestServer.Tests.Integration
         public async Task StartAsyncStartsTheWebApplicationAndReturnsContentFromTheContentRoot()
         {
             var server = CreateKestrelWebServer();
-            using var state = await server.StartAsync<Startup>(Assembly.GetAssembly(typeof(KestrelWebServerTests)), @"..\..\..\Web".Some(), new Dictionary<string, string>());
+            using var state = await server.StartAsync<Startup>(Assembly.GetAssembly(typeof(KestrelWebServerTests)),
+                @"..\..\..\Web".Some(), new Dictionary<string, string>());
 
             var client = new HttpClient { BaseAddress = state.Endpoint };
             var response = await client.GetAsync("test.txt");
@@ -68,7 +69,5 @@ namespace AspNetCoreTestServer.Tests.Integration
             var result = await service.TestConfiguration("test:test2:test3");
             result.Should().Be("testing");
         }
-
-        private KestrelWebServer CreateKestrelWebServer() => new KestrelWebServer(WebHost.CreateDefaultBuilder, new PortResolver());
     }
 }

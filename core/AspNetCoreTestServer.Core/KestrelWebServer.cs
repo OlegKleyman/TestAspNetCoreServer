@@ -1,9 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.IO;
 using System.Reflection;
 using System.Threading.Tasks;
-using Microsoft.AspNetCore;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.Extensions.Configuration;
 using Optional;
@@ -12,8 +10,8 @@ namespace AspNetCoreTestServer.Core
 {
     public class KestrelWebServer
     {
-        private readonly Func<IWebHostBuilder> _webHostBuilderFactory;
         private readonly IPortResolver _portResolver;
+        private readonly Func<IWebHostBuilder> _webHostBuilderFactory;
 
         public KestrelWebServer(Func<IWebHostBuilder> webHostBuilderFactory, IPortResolver portResolver)
         {
@@ -21,7 +19,8 @@ namespace AspNetCoreTestServer.Core
             _portResolver = portResolver;
         }
 
-        public async Task<RunningState> StartAsync<TStartup>(Assembly assembly, Option<string> contentRoot, IDictionary<string, string> configuration) where TStartup : class
+        public async Task<RunningState> StartAsync<TStartup>(Assembly assembly, Option<string> contentRoot,
+            IDictionary<string, string> configuration) where TStartup : class
         {
             var url = $"http://127.0.0.1:{_portResolver.GetAvailableTcpPort()}";
             var webHostBuilder = _webHostBuilderFactory();

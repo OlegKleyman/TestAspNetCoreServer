@@ -12,7 +12,7 @@ namespace AspNetCoreTestServer.Core
 
             sock.Bind(new IPEndPoint(IPAddress.Loopback, randomOpenPort));
 
-            return ((IPEndPoint)sock.LocalEndPoint).Port;
+            return ((IPEndPoint) sock.LocalEndPoint).Port;
         }
     }
 }
