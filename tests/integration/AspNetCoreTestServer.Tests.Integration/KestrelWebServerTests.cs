@@ -1,6 +1,5 @@
 ﻿using System.Collections.Generic;
 using System.Net.Http;
-using System.Reflection;
 using System.Threading.Tasks;
 using AspNetCoreTestServer.Core;
 using AspNetCoreTestServer.Tests.Integration.Support;
