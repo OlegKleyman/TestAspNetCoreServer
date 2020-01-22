@@ -4,7 +4,7 @@ using Microsoft.AspNetCore.Hosting;
 using NSubstitute;
 using Xunit;
 
-namespace AspNetCoreTestServer.Core.Tests.Units
+namespace AspNetCoreTestServer.Core.Tests.Unit
 {
     public class RunningStateTests
     {

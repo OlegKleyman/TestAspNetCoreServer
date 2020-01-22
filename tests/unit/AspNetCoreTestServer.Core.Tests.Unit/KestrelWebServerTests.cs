@@ -14,7 +14,7 @@ using NSubstitute.Extensions;
 using Optional;
 using Xunit;
 
-namespace AspNetCoreTestServer.Core.Tests.Units
+namespace AspNetCoreTestServer.Core.Tests.Unit
 {
     public class KestrelWebServerTests
     {
