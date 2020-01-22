@@ -22,7 +22,7 @@ namespace AspNetCoreTestServer.Tests.Integration
         public async Task StartAsyncStartsTheWebApplication()
         {
             var server = CreateKestrelWebServer();
-            using var state = await server.StartAsync<Startup>(Assembly.GetAssembly(typeof(KestrelWebServerTests)));
+            using var state = await server.StartAsync<Startup>(typeof(KestrelWebServerTests).Assembly);
 
             var service = RestService.For<ITestService>(state.Endpoint.AbsoluteUri);
             var result = await service.Get();
@@ -33,7 +33,7 @@ namespace AspNetCoreTestServer.Tests.Integration
         public async Task StartAsyncStartsTheWebApplicationAndReturnsContentFromTheContentRoot()
         {
             var server = CreateKestrelWebServer();
-            using var state = await server.StartAsync<Startup>(Assembly.GetAssembly(typeof(KestrelWebServerTests)),
+            using var state = await server.StartAsync<Startup>(typeof(KestrelWebServerTests).Assembly,
                 @"..\..\..\Web".Some(), new Dictionary<string, string>());
 
             var client = new HttpClient { BaseAddress = state.Endpoint };
@@ -46,7 +46,7 @@ namespace AspNetCoreTestServer.Tests.Integration
         public async Task StartAsyncStartsTheWebApplicationAndReturnsView()
         {
             var server = CreateKestrelWebServer();
-            using var state = await server.StartAsync<Startup>(Assembly.GetAssembly(typeof(KestrelWebServerTests)),
+            using var state = await server.StartAsync<Startup>(typeof(KestrelWebServerTests).Assembly,
                 @"..\..\..\Web".Some(), new Dictionary<string, string>());
 
             var client = new HttpClient { BaseAddress = state.Endpoint };
@@ -59,7 +59,7 @@ namespace AspNetCoreTestServer.Tests.Integration
         public async Task StartAsyncStartsTheWebApplicationAndUsesTheConfigurationArgument()
         {
             var server = CreateKestrelWebServer();
-            using var state = await server.StartAsync<Startup>(Assembly.GetAssembly(typeof(KestrelWebServerTests)),
+            using var state = await server.StartAsync<Startup>(typeof(KestrelWebServerTests).Assembly,
                 @"..\..\..\Web".Some(), new Dictionary<string, string>
                 {
                     ["test:test2:test3"] = "testing"
