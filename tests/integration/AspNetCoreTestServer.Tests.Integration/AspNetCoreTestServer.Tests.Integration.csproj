@@ -15,7 +15,7 @@
     <PackageReference Include="FluentAssertions" Version="5.10.0" />
     <PackageReference Include="FluentAssertions.Optional" Version="0.0.0.11" />
     <PackageReference Include="Microsoft.NET.Test.Sdk" Version="16.4.0" />
-    <PackageReference Include="refit" Version="5.0.23" />
+    <PackageReference Include="refit" Version="7.2.22" />
     <PackageReference Include="SpecFlow.Tools.MsBuild.Generation" Version="3.1.78" />
     <PackageReference Include="SpecFlow.xUnit" Version="3.1.78" />
     <PackageReference Include="xunit.runner.visualstudio" Version="2.4.1">
